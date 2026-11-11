@@ -1,0 +1,48 @@
+device: cpu
+seed: 0
+n_envs: 256
+torch_threads: 1
+total_timesteps: 40000000
+eval_freq: 500000
+eval_episodes: 20
+environment:
+  dt: 0.01
+  min_ioi: 0.45
+  max_ioi: 0.75
+  exclude_ioi: null
+  tap_delay: 0.05
+  tap_freeze: false
+  reward_type: nearest
+  sync_beats: 10
+  entrainment_beats: 3
+  continuation_beats: 0
+  lead_in: 0.1
+  jitter: 0.0
+  perturb_beat: 0
+  perturb: 0.0
+  perturb_mode: phase
+  interval_weight: 0.2
+  interval_cap: 0.16
+  use_missed_penalty: true
+  missed_tap_window_frac: 0.5
+  notap_penalty: -1.0
+  notap_counts: evaluated
+rl_algorithm:
+  policy: MlpLstmPolicy
+  learning_rate: 0.001
+  n_steps: 32
+  batch_size: 1024
+  n_epochs: 10
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.1
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+policy_kwargs:
+  lstm_hidden_size: 128
+  n_lstm_layers: 1
+  ortho_init: false
+  net_arch:
+    pi: []
+    vf: []

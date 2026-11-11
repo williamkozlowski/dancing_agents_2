@@ -1,0 +1,14 @@
+# Tested with Python 3.11. utils/fast_lstm.py patches an sb3-contrib internal, so keep
+# stable-baselines3 / sb3-contrib at these versions (or re-verify the patch if upgrading).
+gymnasium==1.0.0
+numpy==1.24.4
+torch==2.2.1
+stable-baselines3==2.4.1
+sb3-contrib==2.4.0
+pandas
+scikit-learn
+scipy
+matplotlib
+pyyaml
+optuna
+tensorboard==2.14.1

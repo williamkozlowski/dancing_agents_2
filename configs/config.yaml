@@ -1,0 +1,58 @@
+device: cpu
+seed: 0
+n_envs: 32                          # parallel environments (DummyVecEnv)
+torch_threads: 1
+total_timesteps: 140000000          # 140M environment steps at 10 ms each
+eval_freq: 1000000                  # evaluation every 1M steps (~2.8 h simulated)
+eval_episodes: 50
+checkpoint_freq: 5000000            # snapshot to checkpoints/step_<N>.zip (~1.6 MB each); 0 = off
+
+environment:
+  dt: 0.01                          # timestep resolution (s)
+  min_ioi: 0.45                     # IOI range (s): 450-750 ms, sampled per episode
+  max_ioi: 0.75
+  exclude_ioi: null                 # e.g. [0.5, 0.6] for the band-limited generalization test
+  tap_delay: 0.05                   # tap initiation -> landing (50 ms)
+  tap_freeze: false                 # true = "Tap Freeze" variant (no new tap while one is in flight)
+  reward_type: next+interval        # nearest | next | nearest+interval | next+interval
+  sync_beats: 10                    # audible metronome cues per episode
+  entrainment_beats: 3              # first 3 cues are non-evaluative
+  continuation_beats: 0             # silent beats after the cues (test-time sync-continuation task)
+  lead_in: 0.1                      # silence before the first cue (s)
+  jitter: 0.0                       # cue-time Gaussian jitter SD (s)
+  perturb_beat: 0                   # 1-indexed cue to perturb (0 = off)
+  perturb: 0.0                      # perturbation (s)
+  perturb_mode: phase               # phase = shift that cue and all later ones; event = that cue only
+  efference_input: false            # include the previous action as an extra input
+  tap_feedback: false
+  interval_weight: 0.2              # interval penalty
+  interval_cap: 0.16                # interval penalty
+  use_missed_penalty: true          # penalize missed beats
+  missed_tap_window_frac: 0.5       # missed-tap radius = IOI/2
+  notap_penalty: -1.0               # r_notap
+  notap_counts: evaluated           # r_notap applies when no *scored* tap lands (all = any tap)
+
+rl_algorithm:                       # recurrent PPO (sb3-contrib)
+  policy: MlpLstmPolicy
+  learning_rate: 0.0003
+  n_steps: 1024                     # rollout steps per environment
+  batch_size: 4096                  # 4 env sequences x 1024 steps per minibatch
+  n_epochs: 10
+  gamma: 0.999                      # ~10 s horizon: covers the whole episode, incl. r_missed and r_notap
+  gae_lambda: 0.95
+  clip_range: 0.2
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  normalize_advantage: false        # whether to normalize advantages
+  ent_coef: 0.05                    # initial entropy coefficient
+  ent_coef_final: 0.01              # final entropy coefficient; null disables the schedule
+  ent_decay_steps: 40000000
+  init_tap_prob: 0.02               # initial P_tap per step (~1 tap per beat) instead of 0.5
+  lstm_input_scale: 10.0            # scale applied to initial input weights
+  lstm_forget_bias: 3.0             # initial forget gate bias
+
+policy_kwargs:
+  lstm_hidden_size: 128             # single LSTM layer, 128 units
+  n_lstm_layers: 1
+  ortho_init: false
+  net_arch: {pi: [], vf: []}        # LSTM -> single perceptron (P_tap); linear value head
