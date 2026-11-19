@@ -6,6 +6,8 @@ import sys
 import numpy as np
 import yaml
 
+import matplotlib.pyplot as plt
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sb3_contrib import RecurrentPPO  # noqa: E402
@@ -22,6 +24,26 @@ def print_single_trial(result):
     print("Evaluated tap-cue asynchronies (ms):", [round(a) for a in result["eval_async"]])
     if result["eval_async"]:
         print(f"Mean asynchrony (evaluated taps): {np.mean(result['eval_async']):+.1f} ms")
+
+    cue_times = np.array(result["cues"]) * dt_ms
+    tap_times = np.array(result["taps"]) * dt_ms
+    print("Cue times (ms):", cue_times)
+    print("Tap times (ms):", tap_times)
+    print("Tap-cue asynchronies (ms):", result["asynchronies"])
+
+    tap_graph = np.array([np.ones(tap_times.size), tap_times])
+
+    cue_graph = np.array([np.ones(cue_times.size)*2, cue_times])
+
+    plt.figure(figsize=(12,6))
+    plt.grid(True, axis='x', ls="--")
+    plt.ylim(0, 3)
+    plt.xticks(cue_times)
+    plt.yticks([])
+    plt.scatter(tap_graph[1], tap_graph[0], color='blue', label='Taps', marker='^', s=200)
+    plt.scatter(cue_graph[1], cue_graph[0], color='red', label='Cues', marker="*", s=200)
+    plt.legend()
+    plt.show()
 
 
 def steady(model, env_cfg, episodes, seed):
